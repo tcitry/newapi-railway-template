@@ -1,18 +1,18 @@
 # New API on Railway
 
-这个仓库保存 New API 的 Railway 模板配置和本地 Docker Compose 验证环境。Railway 的三个服务直接从官方镜像部署。
+This repository contains the Railway template configuration for New API and a Docker Compose setup for local testing. All three services use official container images.
 
-| 服务名 | 官方镜像 | Railway Volume |
+| Service | Official image | Railway volume mount |
 | --- | --- | --- |
 | New API | `calciumion/new-api:v1.0.0-rc.51` | `/data` |
 | Postgres | `ghcr.io/railwayapp-templates/postgres-ssl:18` | `/var/lib/postgresql/data` |
 | Redis | `redis:8.2.11` | `/data` |
 
-镜像来源可在各自的发布页核对。[New API](https://github.com/QuantumNous/new-api/releases/tag/v1.0.0-rc.51) · [Railway PostgreSQL](https://github.com/railwayapp-templates/postgres-ssl/pkgs/container/postgres-ssl) · [Redis](https://hub.docker.com/_/redis)
+See the official image and release pages.[New API](https://github.com/QuantumNous/new-api/releases/tag/v1.0.0-rc.51) · [Railway PostgreSQL](https://github.com/railwayapp-templates/postgres-ssl/pkgs/container/postgres-ssl) · [Redis](https://hub.docker.com/_/redis)
 
 ## Railway Template
 
-在 Workspace 的 **Settings → Templates** 打开模板编辑器。按表格添加镜像和 Volume。配置块使用 `Postgres`、`Redis` 作为服务名，改名时同步更新引用。每次从模板部署，使用新 Project 和新 Volume。
+Open the template editor from your Railway workspace under **Settings → Templates**. Use the images and volume mount paths in the table above. The examples use `Postgres` and `Redis` as service names. If you rename either service, update its references. Use a new project and fresh volumes for each deployment.
 
 ### Postgres
 
@@ -29,7 +29,7 @@ PGDATA=/var/lib/postgresql/data/pgdata
 REDIS_PASSWORD=${{secret(64, "abcdef0123456789")}}
 ```
 
-在 **Start Command** 填入以下命令，开启 AOF 持久化和密码认证。
+Set **Start Command** to the following command to enable AOF persistence and password authentication.
 
 ```sh
 /bin/sh -ec 'exec docker-entrypoint.sh redis-server --appendonly yes --requirepass "$REDIS_PASSWORD"'
@@ -44,22 +44,22 @@ REDIS_CONN_STRING=redis://:${{Redis.REDIS_PASSWORD}}@${{Redis.RAILWAY_PRIVATE_DO
 SESSION_SECRET=${{secret(64, "abcdef0123456789")}}
 ```
 
-在 **Healthcheck Path** 填入 `/api/status`。PostgreSQL 的 `sslmode=require` 要求 TLS，连接地址使用 Railway 私网域名。[创建 Template](https://docs.railway.com/templates/create)
+Set **Healthcheck Path** to `/api/status`. The PostgreSQL connection uses a Railway private hostname and requires TLS through `sslmode=require`. [Railway template documentation](https://docs.railway.com/templates/create)
 
-### 部署到新 Project
+### Deploy to a New Project
 
-1. 保存 Template，打开它的部署链接，选择 **New Project**。等待三个服务部署成功。从空卷初始化的新实例需要创建自己的管理员帐号。
-2. 让 New API 先在私网运行。向 Railway 注册 SSH 公钥，在 New API 服务的命令面板复制 **Service Instance ID**，用下面的命令转发容器端口。浏览器访问 `http://127.0.0.1:3000`，完成初始化。[Railway SSH](https://docs.railway.com/cli/ssh)
+1. Save the template, open its deployment link, and select **New Project**. Wait for all three services to deploy successfully. A fresh instance needs its own administrator account.
+2. Keep New API on the private network during setup. Register your SSH public key with Railway, then select **Copy Service Instance ID** from the New API service's command palette. Forward the container port with the command below and open `http://127.0.0.1:3000` in your browser to create the administrator account. [Railway SSH](https://docs.railway.com/cli/ssh)
 
    ```sh
    ssh -N -L 127.0.0.1:3000:127.0.0.1:3000 '<service-instance-id>@ssh.railway.com'
    ```
 
-3. 在新 Project 的 New API 服务打开 **Settings → Networking**。添加 **Custom Domain** 并按 Railway 提示配置 DNS，或用 **Generate Domain** 获取 Railway 域名。目标端口填 `3000`。用新入口访问 `/api/status` 验证可用性。[域名配置](https://docs.railway.com/networking/domains/working-with-domains) · [部署记录](https://yindongliang.com/docs/App/new-api-railway-template/)
+3. In the new project's New API service, open **Settings → Networking**. Add a **Custom Domain** and follow Railway's DNS instructions, or select **Generate Domain** to use a Railway hostname. Set the target port to `3000` and visit `/api/status` on the new hostname to verify the deployment. [Railway domain documentation](https://docs.railway.com/networking/domains/working-with-domains) · [Deployment notes (Chinese)](https://yindongliang.com/docs/App/new-api-railway-template/)
 
-## 本地验证
+## Local Verification
 
-生成本地凭据后启动容器。已有 `.env` 时继续使用原文件，保持现有数据库密码和 Session Secret。
+Generate local credentials and start the containers. If you already have a `.env` file, keep it to preserve your database password and session secret.
 
 ```sh
 (
@@ -72,4 +72,4 @@ docker compose up -d --wait
 curl --fail --silent --show-error http://127.0.0.1:3000/api/status
 ```
 
-如本机端口已占用，在 `.env` 设置 `NEW_API_LOCAL_PORT`。本地检验结束后执行 `docker compose down` 可停止服务并保留数据。三个镜像和连接参数与上面的 Railway 配置一致，Compose 使用本地服务名解析地址。
+If port `3000` is already in use, set `NEW_API_LOCAL_PORT` in `.env` and use that port in the health check URL. When you finish testing, run `docker compose down` to stop the services and keep their data. Compose uses the same images and connection settings as the Railway template, with local service names for hostnames.
