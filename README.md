@@ -1,8 +1,12 @@
 # New API on Railway
 
-Deploy New API with PostgreSQL and Redis on Railway. Railway builds New API from this repository’s Dockerfile, which uses the upstream image. PostgreSQL and Redis use their official images directly. To set up a reusable one-click deployment, start with the [Railway template setup](#railway-template).
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/IfyGwd?referralCode=tcitry&utm_medium=integration&utm_source=template&utm_campaign=generic)
 
-| Service | Official image | Railway volume mount |
+The button opens a Railway template with New API, PostgreSQL, and Redis. Choose a new project to deploy an independent instance. The linked template pulls `calciumion/new-api:latest` directly.
+
+To build New API from this repository, use the [Railway template setup](#railway-template) below. Its Dockerfile pins the official New API image, and Compose builds it for local testing.
+
+| Service | Official image for the setup below | Railway volume mount |
 | --- | --- | --- |
 | New API | `calciumion/new-api:v1.0.0-rc.51` | `/data` |
 | Postgres | `ghcr.io/railwayapp-templates/postgres-ssl:18` | `/var/lib/postgresql/data` |
