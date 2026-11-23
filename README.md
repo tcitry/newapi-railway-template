@@ -1,6 +1,6 @@
 # New API on Railway
 
-Deploy New API with PostgreSQL and Redis on Railway. The configuration in `.railway/railway.ts` provisions the three services and their volumes. Railway builds New API from this repository’s Dockerfile, which uses the upstream image. PostgreSQL and Redis use their official images directly.
+Deploy New API with PostgreSQL and Redis on Railway. Railway builds New API from this repository’s Dockerfile, which uses the upstream image. PostgreSQL and Redis use their official images directly. To set up a reusable one-click deployment, start with the [Railway template setup](#railway-template).
 
 | Service | Official image | Railway volume mount |
 | --- | --- | --- |
@@ -10,34 +10,13 @@ Deploy New API with PostgreSQL and Redis on Railway. The configuration in `.rail
 
 See the official image and release pages. [New API](https://github.com/QuantumNous/new-api/releases/tag/v1.0.0-rc.51) · [Railway PostgreSQL](https://github.com/railwayapp-templates/postgres-ssl/pkgs/container/postgres-ssl) · [Redis](https://hub.docker.com/_/redis)
 
-## Deploy from GitHub to a New Railway Project
-
-Install Node.js 22 or newer and the Railway CLI (5.42.1 or newer). Grant Railway's GitHub integration access to this repository. From a checkout of the repository, run the commands below. [Railway CLI](https://docs.railway.com/cli)
-
-```sh
-npm ci
-railway login
-railway init --name newapi
-```
-
-In the new Project's production environment, add these three **Shared Variables**. Run `openssl rand -hex 32` separately for each value, and paste the results into Railway.
-
-- `NEWAPI_POSTGRES_PASSWORD`
-- `NEWAPI_REDIS_PASSWORD`
-- `NEWAPI_SESSION_SECRET`
-
-Run the following in the same checkout. Verify that the plan names your new Project and creates the three services and their volumes. Keep the shared variables for the lifetime of the project.
-
-```sh
-railway config plan
-railway config apply
-```
-
-After all three services deploy, follow [Initialize and Expose New API](#initialize-and-expose-new-api). Pushes to `main` can rebuild the GitHub-backed New API service. Changes to the infrastructure file are applied with `railway config apply`. [Railway Infrastructure as Code](https://docs.railway.com/infrastructure-as-code) · [Railway shared variables](https://docs.railway.com/variables)
-
 ## Railway Template
 
-In Railway, open your workspace's **Settings → Templates** and select **New Template**. Set the New API service source to this GitHub repository. Add Postgres and Redis as Docker image services. Use the volume mount paths in the table above. The examples use `Postgres` and `Redis` as service names. If you rename either service, update its references.
+Create the template once. Each time you deploy from its link, Railway can provision a separate project with fresh volumes and credentials.
+
+1. Open your workspace's **Settings → Templates** and select **New Template**. [Open Railway Templates](https://railway.com/workspace/templates)
+2. Add a service named **New API** from the GitHub repository `tcitry/newapi-railway-template` on `main`. Add two Docker image services named **Postgres** and **Redis**, using the image references in the table above.
+3. Attach each volume using the mount path in the table. Add the variables and service settings below. Keep the services on the private network during setup.
 
 ### Postgres
 
@@ -71,7 +50,11 @@ SESSION_SECRET=${{secret(64, "abcdef0123456789")}}
 
 Set **Healthcheck Path** to `/api/status`. The PostgreSQL connection uses a Railway private hostname and requires TLS through `sslmode=require`. [Railway template documentation](https://docs.railway.com/templates/create)
 
-Save the template, open its deployment link, and select **New Project**. After all three services deploy, initialize the new instance.
+### Save and Test the Template
+
+Click **Create Template** and copy its deployment link. Open the link and deploy into a new project. Verify that all three services start and that the New API service shows this GitHub repository as its source. Then [initialize the instance](#initialize-and-expose-new-api).
+
+Use the verified deployment link as the target of the **Deploy on Railway** badge on GitHub. Publishing to the Marketplace is optional. [Railway button documentation](https://docs.railway.com/templates/publish-and-share#deploy-on-railway-button)
 
 ## Initialize and Expose New API
 
@@ -82,6 +65,31 @@ Save the template, open its deployment link, and select **New Project**. After a
    ```
 
 2. In the new project's New API service, open **Settings → Networking**. Add a **Custom Domain** and follow Railway's DNS instructions, or select **Generate Domain** to use a Railway hostname. Set the target port to `3000` and visit `/api/status` on the new hostname to verify the deployment. [Railway domain documentation](https://docs.railway.com/networking/domains/working-with-domains) · [Deployment notes (Chinese)](https://yindongliang.com/docs/App/new-api-railway-template/)
+
+## Deploy with the Railway CLI
+
+Install Node.js 22 or newer and the Railway CLI (5.42.1 or newer). Grant Railway's GitHub integration access to this repository. From a checkout of the repository, run the commands below. [Railway CLI](https://docs.railway.com/cli)
+
+```sh
+npm ci
+railway login
+railway init --name newapi
+```
+
+In the new Project's production environment, add these three **Shared Variables**. Run `openssl rand -hex 32` separately for each value, and paste the results into Railway.
+
+- `NEWAPI_POSTGRES_PASSWORD`
+- `NEWAPI_REDIS_PASSWORD`
+- `NEWAPI_SESSION_SECRET`
+
+Run the following in the same checkout. Verify that the plan names your new Project and creates the three services and their volumes. Keep the shared variables for the lifetime of the project.
+
+```sh
+railway config plan
+railway config apply
+```
+
+After all three services deploy, follow [Initialize and Expose New API](#initialize-and-expose-new-api). Pushes to `main` can rebuild the GitHub-backed New API service. Changes to the infrastructure file are applied with `railway config apply`. [Railway Infrastructure as Code](https://docs.railway.com/infrastructure-as-code) · [Railway shared variables](https://docs.railway.com/variables)
 
 ## Local Verification
 
