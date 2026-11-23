@@ -26,7 +26,7 @@ services:
       timeout: 3s
       retries: 30
   newapi:
-    image: calciumion/new-api:v1.0.0-rc.51
+    build: .
     environment:
       PORT: 3000
       SQL_DSN: postgresql://newapi:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/newapi?sslmode=require
