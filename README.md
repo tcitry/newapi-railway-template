@@ -66,31 +66,6 @@ Use the verified deployment link as the target of the **Deploy on Railway** badg
 
 2. In the new project's New API service, open **Settings → Networking**. Add a **Custom Domain** and follow Railway's DNS instructions, or select **Generate Domain** to use a Railway hostname. Set the target port to `3000` and visit `/api/status` on the new hostname to verify the deployment. [Railway domain documentation](https://docs.railway.com/networking/domains/working-with-domains) · [Deployment notes (Chinese)](https://yindongliang.com/docs/App/new-api-railway-template/)
 
-## Deploy with the Railway CLI
-
-Install Node.js 22 or newer and the Railway CLI (5.42.1 or newer). Grant Railway's GitHub integration access to this repository. From a checkout of the repository, run the commands below. [Railway CLI](https://docs.railway.com/cli)
-
-```sh
-npm ci
-railway login
-railway init --name newapi
-```
-
-In the new Project's production environment, add these three **Shared Variables**. Run `openssl rand -hex 32` separately for each value, and paste the results into Railway.
-
-- `NEWAPI_POSTGRES_PASSWORD`
-- `NEWAPI_REDIS_PASSWORD`
-- `NEWAPI_SESSION_SECRET`
-
-Run the following in the same checkout. Verify that the plan names your new Project and creates the three services and their volumes. Keep the shared variables for the lifetime of the project.
-
-```sh
-railway config plan
-railway config apply
-```
-
-After all three services deploy, follow [Initialize and Expose New API](#initialize-and-expose-new-api). Pushes to `main` can rebuild the GitHub-backed New API service. Changes to the infrastructure file are applied with `railway config apply`. [Railway Infrastructure as Code](https://docs.railway.com/infrastructure-as-code) · [Railway shared variables](https://docs.railway.com/variables)
-
 ## Local Verification
 
 Generate local credentials and start the containers. If you already have a `.env` file, keep it to preserve your database password and session secret.
