@@ -1,6 +1,6 @@
 # New API on Railway
 
-This repository contains the Railway template configuration for New API and a Docker Compose setup for local testing. All three services use official container images.
+Deploy New API with PostgreSQL and Redis on Railway. The configuration in `.railway/railway.ts` provisions the three services and their volumes. Railway builds New API from this repository’s Dockerfile, which uses the upstream image. PostgreSQL and Redis use their official images directly.
 
 | Service | Official image | Railway volume mount |
 | --- | --- | --- |
@@ -8,11 +8,36 @@ This repository contains the Railway template configuration for New API and a Do
 | Postgres | `ghcr.io/railwayapp-templates/postgres-ssl:18` | `/var/lib/postgresql/data` |
 | Redis | `redis:8.2.11` | `/data` |
 
-See the official image and release pages.[New API](https://github.com/QuantumNous/new-api/releases/tag/v1.0.0-rc.51) · [Railway PostgreSQL](https://github.com/railwayapp-templates/postgres-ssl/pkgs/container/postgres-ssl) · [Redis](https://hub.docker.com/_/redis)
+See the official image and release pages. [New API](https://github.com/QuantumNous/new-api/releases/tag/v1.0.0-rc.51) · [Railway PostgreSQL](https://github.com/railwayapp-templates/postgres-ssl/pkgs/container/postgres-ssl) · [Redis](https://hub.docker.com/_/redis)
+
+## Deploy from GitHub to a New Railway Project
+
+Install Node.js 22 or newer and the Railway CLI (5.42.1 or newer). Grant Railway's GitHub integration access to this repository. From a checkout of the repository, run the commands below. [Railway CLI](https://docs.railway.com/cli)
+
+```sh
+npm ci
+railway login
+railway init --name newapi
+```
+
+In the new Project's production environment, add these three **Shared Variables**. Run `openssl rand -hex 32` separately for each value, and paste the results into Railway.
+
+- `NEWAPI_POSTGRES_PASSWORD`
+- `NEWAPI_REDIS_PASSWORD`
+- `NEWAPI_SESSION_SECRET`
+
+Run the following in the same checkout. Verify that the plan names your new Project and creates the three services and their volumes. Keep the shared variables for the lifetime of the project.
+
+```sh
+railway config plan
+railway config apply
+```
+
+After all three services deploy, follow [Initialize and Expose New API](#initialize-and-expose-new-api). Pushes to `main` can rebuild the GitHub-backed New API service. Changes to the infrastructure file are applied with `railway config apply`. [Railway Infrastructure as Code](https://docs.railway.com/infrastructure-as-code) · [Railway shared variables](https://docs.railway.com/variables)
 
 ## Railway Template
 
-Open the template editor from your Railway workspace under **Settings → Templates**. Use the images and volume mount paths in the table above. The examples use `Postgres` and `Redis` as service names. If you rename either service, update its references. Use a new project and fresh volumes for each deployment.
+In Railway, open your workspace's **Settings → Templates** and select **New Template**. Set the New API service source to this GitHub repository. Add Postgres and Redis as Docker image services. Use the volume mount paths in the table above. The examples use `Postgres` and `Redis` as service names. If you rename either service, update its references.
 
 ### Postgres
 
@@ -46,16 +71,17 @@ SESSION_SECRET=${{secret(64, "abcdef0123456789")}}
 
 Set **Healthcheck Path** to `/api/status`. The PostgreSQL connection uses a Railway private hostname and requires TLS through `sslmode=require`. [Railway template documentation](https://docs.railway.com/templates/create)
 
-### Deploy to a New Project
+Save the template, open its deployment link, and select **New Project**. After all three services deploy, initialize the new instance.
 
-1. Save the template, open its deployment link, and select **New Project**. Wait for all three services to deploy successfully. A fresh instance needs its own administrator account.
-2. Keep New API on the private network during setup. Register your SSH public key with Railway, then select **Copy Service Instance ID** from the New API service's command palette. Forward the container port with the command below and open `http://127.0.0.1:3000` in your browser to create the administrator account. [Railway SSH](https://docs.railway.com/cli/ssh)
+## Initialize and Expose New API
+
+1. Keep New API on the private network during setup. Register your SSH public key with Railway, then select **Copy Service Instance ID** from the New API service's command palette. Forward the container port with the command below and open `http://127.0.0.1:3000` in your browser to create the administrator account. [Railway SSH](https://docs.railway.com/cli/ssh)
 
    ```sh
    ssh -N -L 127.0.0.1:3000:127.0.0.1:3000 '<service-instance-id>@ssh.railway.com'
    ```
 
-3. In the new project's New API service, open **Settings → Networking**. Add a **Custom Domain** and follow Railway's DNS instructions, or select **Generate Domain** to use a Railway hostname. Set the target port to `3000` and visit `/api/status` on the new hostname to verify the deployment. [Railway domain documentation](https://docs.railway.com/networking/domains/working-with-domains) · [Deployment notes (Chinese)](https://yindongliang.com/docs/App/new-api-railway-template/)
+2. In the new project's New API service, open **Settings → Networking**. Add a **Custom Domain** and follow Railway's DNS instructions, or select **Generate Domain** to use a Railway hostname. Set the target port to `3000` and visit `/api/status` on the new hostname to verify the deployment. [Railway domain documentation](https://docs.railway.com/networking/domains/working-with-domains) · [Deployment notes (Chinese)](https://yindongliang.com/docs/App/new-api-railway-template/)
 
 ## Local Verification
 
