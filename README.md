@@ -4,6 +4,10 @@
 
 The button opens a Railway template with New API, PostgreSQL, and Redis. Choose a new project to deploy an independent instance. The linked template pulls `calciumion/new-api:latest` directly.
 
+[`template-config.json`](template-config.json) records the configuration available on the deployment page for this template, including the service sources, variables, volume mounts, and networking. It keeps generated-secret expressions and variable references. Any defaults that Railway omits from the deployment page are left unspecified.
+
+Railway deploys the configuration saved in the template editor. When you change that template, update the JSON snapshot in this repository so the change can be reviewed in Git.
+
 To build New API from this repository, use the [Railway template setup](#railway-template) below. Its Dockerfile pins the official New API image, and Compose builds it for local testing.
 
 | Service | Official image for the setup below | Railway volume mount |

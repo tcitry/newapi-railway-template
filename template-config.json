@@ -1,0 +1,149 @@
+{
+  "buckets": {},
+  "services": {
+    "5bb5533f-c494-4ae0-8587-4f62522c7967": {
+      "icon": "https://www.newapi.ai/assets/newapi.svg",
+      "name": "New API Frontend",
+      "deploy": {
+        "startCommand": null,
+        "healthcheckPath": null,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+      },
+      "source": {
+        "image": "calciumion/new-api:latest"
+      },
+      "variables": {
+        "TZ": {
+          "isOptional": false
+        },
+        "SQL_DSN": {
+          "isOptional": false,
+          "defaultValue": "${{Postgres.DATABASE_URL}}"
+        },
+        "RELAY_TIMEOUT": {
+          "isOptional": false
+        },
+        "ERROR_LOG_ENABLED": {
+          "isOptional": false
+        },
+        "REDIS_CONN_STRING": {
+          "isOptional": false,
+          "defaultValue": "${{Redis.REDIS_URL}}"
+        },
+        "BATCH_UPDATE_ENABLED": {
+          "isOptional": false
+        }
+      },
+      "networking": {
+        "serviceDomains": {
+          "<hasDomain>": {}
+        }
+      }
+    },
+    "99f79369-867f-4857-ae70-a41b3b96c47c": {
+      "icon": "https://devicons.railway.app/i/postgresql.svg",
+      "name": "Postgres",
+      "deploy": {
+        "startCommand": null,
+        "healthcheckPath": null,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+      },
+      "source": {
+        "image": "ghcr.io/railwayapp-templates/postgres-ssl:18"
+      },
+      "variables": {
+        "PGDATA": {
+          "isOptional": false
+        },
+        "PGHOST": {
+          "isOptional": false,
+          "defaultValue": "${{RAILWAY_PRIVATE_DOMAIN}}"
+        },
+        "PGPORT": {
+          "isOptional": false
+        },
+        "PGUSER": {
+          "isOptional": false,
+          "defaultValue": "${{POSTGRES_USER}}"
+        },
+        "PGDATABASE": {
+          "isOptional": false,
+          "defaultValue": "${{POSTGRES_DB}}"
+        },
+        "PGPASSWORD": {
+          "isOptional": false,
+          "defaultValue": "${{POSTGRES_PASSWORD}}"
+        },
+        "POSTGRES_DB": {
+          "isOptional": false
+        },
+        "DATABASE_URL": {
+          "isOptional": false,
+          "defaultValue": "postgresql://${{PGUSER}}:${{POSTGRES_PASSWORD}}@${{RAILWAY_PRIVATE_DOMAIN}}:5432/${{PGDATABASE}}"
+        },
+        "POSTGRES_USER": {
+          "isOptional": false
+        },
+        "SSL_CERT_DAYS": {
+          "isOptional": false
+        },
+        "POSTGRES_PASSWORD": {
+          "isOptional": false,
+          "defaultValue": "${{ secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\") }}"
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "isOptional": false
+        }
+      },
+      "volumeMounts": {
+        "99f79369-867f-4857-ae70-a41b3b96c47c": {
+          "mountPath": "/var/lib/postgresql/data"
+        }
+      }
+    },
+    "aa13a5e4-7752-4e51-90ed-2d4c8dc6d417": {
+      "icon": "https://cdn.sanity.io/images/sy1jschh/production/0ce0bfdcfbdbf69662b1116671f97c2dd788b655-157x157.svg",
+      "name": "Redis",
+      "deploy": {
+        "startCommand": "/bin/sh -c \"rm -rf $RAILWAY_VOLUME_MOUNT_PATH/lost+found/ && exec docker-entrypoint.sh redis-server --requirepass $REDIS_PASSWORD --save 60 1 --dir $RAILWAY_VOLUME_MOUNT_PATH\"",
+        "healthcheckPath": null,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+      },
+      "source": {
+        "image": "redis:8.2.11"
+      },
+      "variables": {
+        "REDISHOST": {
+          "isOptional": false,
+          "defaultValue": "${{RAILWAY_PRIVATE_DOMAIN}}"
+        },
+        "REDISPORT": {
+          "isOptional": false
+        },
+        "REDISUSER": {
+          "isOptional": false
+        },
+        "REDIS_URL": {
+          "isOptional": false,
+          "defaultValue": "redis://${{REDISUSER}}:${{REDIS_PASSWORD}}@${{REDISHOST}}:${{REDISPORT}}"
+        },
+        "REDISPASSWORD": {
+          "isOptional": false,
+          "defaultValue": "${{REDIS_PASSWORD}}"
+        },
+        "REDIS_PASSWORD": {
+          "isOptional": false,
+          "defaultValue": "${{ secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\") }}"
+        }
+      },
+      "volumeMounts": {
+        "aa13a5e4-7752-4e51-90ed-2d4c8dc6d417": {
+          "mountPath": "/data"
+        }
+      }
+    }
+  }
+}
